@@ -91,22 +91,27 @@ proxy.on('request',function(userReq,userRes){
 			}));
 			userRes.end();
 		});
-		proxyReq.on('close', function(){console.log(resBody);
-			console.log(fReqId() + 'Read data from server.');
-			try {
-				userRes.write(JSON.stringify({
-					'status': 'ok',
-					'data': JSON.parse(resBody)
-				}));
+		proxyReq.on('close', function(){
+			if(!userRes.finished){
+				console.log(fReqId() + 'Read data from server.');
+				try {
+					userRes.write(JSON.stringify({
+						'status': 'ok',
+						'data': JSON.parse(resBody)
+					}));
+				}
+				catch(e){
+					try{
+						userRes.write(JSON.stringify({
+							'status': 'ok',
+							'data': '{}'
+						}));
+					}
+					catch(e){}
+				}
+				userRes.end();
+				console.log(fReqId() + 'Connection closed');
 			}
-			catch(e){
-				userRes.write(JSON.stringify({
-					'status': 'ok',
-					'data': '{}'
-				}));
-			}
-			userRes.end();
-			console.log(fReqId() + 'Connection closed');
 		});
 		proxyReq.end();
 	});
